@@ -15,6 +15,18 @@ export const GlobalStyles = createGlobalStyle`
         outline: 0;
         box-sizing: border-box;
     }
+    ::-webkit-scrollbar{
+      width:4px; 
+      background-color: var(--darkGray)
+    }
+    ::-webkit-scrollbar-track{
+        background-color: var(--darkGray)
+    }
+    ::-webkit-scrollbar-thumb{
+        border-radius: 5px;
+        background-color: var(--light);    
+    }
+    
     body{
         font-family: 'Roboto', sans-serif;
         color: var(--light);
@@ -53,6 +65,15 @@ export const GlobalStyles = createGlobalStyle`
         :active{
             transform: scale(0.90);
         }
+    }
+
+    textarea{
+        font-size: 1rem;
+        padding:5px;
+
+        font-weight: 700;
+
+        resize:none;
     }
 
 `;
