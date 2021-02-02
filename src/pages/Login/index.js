@@ -4,6 +4,7 @@ import { Container, FormLogin, Header, Body, Button } from "./styles";
 import Input from "../../components/Input";
 import { Link, useHistory } from "react-router-dom";
 import { useState } from "react";
+import { signIn } from "../../services/security";
 
 function Login() {
   const history = useHistory();
@@ -16,8 +17,8 @@ function Login() {
 
     try {
       const response = await api.post("/sessions", login);
-
-      console.log(response.data);
+      
+      signIn(response.data);
       
       history.push("/home");
     } catch (error) {

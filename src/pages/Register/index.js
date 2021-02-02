@@ -12,24 +12,34 @@ function Register() {
     name:"",
     email: "",
     password: "",
-    confirmPassword:"",
+    validPassword:"",
   });
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const response = await api.post("/students", register);
+      if(register.password !== register.validPassword)
+        return alert("As senhas não são iguais"); 
+
+        
+      const response = await api.post("/students", {
+        ra: register.ra,
+        name: register.name,
+        email: register.email,
+        password: register.password,
+      });
 
       console.log(response.data);
 
-      history.push("/");
+      history.push("/home");
+       
     } catch (error) {
       console.error(error);
       alert(error.response.data.error);
     }
   };
   const handleInput = (e) => {
-    setRegister({ ...setRegister, [e.target.id]: e.target.value });
+    setRegister({ ...register, [e.target.id]: e.target.value });
   };
   return (
     <Container>
@@ -49,13 +59,12 @@ function Register() {
             handler={handleInput}
           />
           <Input
-            id="valid-password"
+            id="validP  assword"
             label="Confirmar a Senha"
             type="password"
             handler={handleInput}
           />
-
-          <Button>Entrar</Button>
+          <Button>Registrar</Button>
           <Link to="/">Ou clique aqui para se Logar</Link>
         </Body>
       </FormLogin>
