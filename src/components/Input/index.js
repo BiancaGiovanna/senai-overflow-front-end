@@ -1,4 +1,4 @@
-const { Container } = require("./styles");
+import { Container } from "./styles";
 
 function Input({ id, label, value, handler, ...rest }) {
   return (
@@ -14,4 +14,5 @@ function Input({ id, label, value, handler, ...rest }) {
     </Container>
   );
 }
+
 export default Input;

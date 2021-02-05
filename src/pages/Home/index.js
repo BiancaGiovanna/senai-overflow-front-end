@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useHistory } from "react-router-dom";
+import { format } from "date-fns";
 import {
   Container,
   Header,
@@ -8,94 +10,123 @@ import {
   ActionsContainer,
   QuestionCard,
   Logo,
-  InconSignOut,
+  IconSignOut,
+  FormNewQuestion,
 } from "./styles";
-
+import Input from "./../../components/Input";
 import imgProfile from "../../assets/foto_perfil.png";
 import logo from "../../assets/logo.png";
-import { Link, useHistory } from "react-router-dom";
 import { api } from "../../services/api";
-import { singOut, getUser } from "../../services/security";
+import { getUser, signOut } from "../../services/security";
+import Modal from "../../components/Modal";
+import Select from "../../components/Select";
+import Tag from "../../components/Tag";
 
-function Profile(params) {
+function Profile() {
+  const student = getUser();
+
   return (
     <>
       <section>
-        <img src={imgProfile} alt="profileImage" />
-        <Link to="">Editar Foto</Link>
+        <img src={imgProfile} alt="Imagem de Perfil" />
+        <a href="#">Editar Foto</a>
       </section>
       <section>
-        <strong>Nome:</strong>
-        <p>Bianca Giovanna</p>
+        <strong>NOME:</strong>
+        <p>{student.name}</p>
       </section>
       <section>
         <strong>RA:</strong>
-        <p>1234567</p>
+        <p>{student.ra}</p>
       </section>
       <section>
-        <strong>Nome:</strong>
-        <p>bianca@gmail.com</p>
+        <strong>E-MAIL:</strong>
+        <p>{student.email}</p>
       </section>
     </>
   );
 }
+
 function Answer({ answer }) {
+  const student = getUser();
+
   return (
     <section>
       <header>
-        <img src={imgProfile} alt="imageProfile" />
-        <strong>por {answer.Student.name}</strong>
+        <img src={imgProfile} />
+        <strong>
+          por{" "}
+          {student.studentId === answer.Student.id
+            ? "Você"
+            : answer.Student.name}
+        </strong>
+        <p> {format(new Date(answer.created_at), "dd/MM/yyyy 'às' HH:mm")}</p>
       </header>
       <p>{answer.description}</p>
     </section>
   );
 }
+
 function Question({ question }) {
   const [showAnswers, setShowAnswers] = useState(false);
 
-  const [newAnswer, setNewAnswer] = useState(" ");
+  const [newAnswer, setNewAnswer] = useState("");
 
-  const [answers, setAnswer] = useState(question.Answers);
+  const [answers, setAnswers] = useState(question.Answers);
 
-  const qtdAnswers = question.Answers.length;
+  const qtdAnswers = answers.length;
 
   const handleAddAnswer = async (e) => {
     e.preventDefault();
+
+    if (newAnswer.length < 10)
+      return alert("A resposta deve ter no mínimo 10 caracteres");
+
     try {
       const response = await api.post(`/questions/${question.id}/answers`, {
         description: newAnswer,
       });
+
       const aluno = getUser();
+
       const answerAdded = {
         id: response.data.id,
         description: newAnswer,
         created_at: response.data.createdAt,
-        Student:{
+        Student: {
           id: aluno.studentId,
-          name:aluno.name,
-        }
-      } 
+          name: aluno.name,
+        },
+      };
 
-      setAnswer([...answers, answerAdded]);
+      setAnswers([...answers, answerAdded]);
 
-      setNewAnswer(" ");
-
+      setNewAnswer("");
     } catch (error) {
       alert(error);
     }
   };
 
+  const student = getUser();
+
   return (
     <QuestionCard>
       <header>
-        <img src={imgProfile} alt="profileImage" />
-        <strong>Por {question.Student.name}</strong>
-        <p>em {question.created_at}</p>
+        <img src={imgProfile} alt="Imagem de perfil" />
+        <strong>
+          por{" "}
+          {student.studentId === question.Student.id
+            ? "Você"
+            : question.Student.name}
+        </strong>
+        <p>
+          em {format(new Date(question.created_at), "dd/MM/yyyy 'às' HH:mm")}
+        </p>
       </header>
       <section>
         <strong>{question.title}</strong>
         <p>{question.description}</p>
-        <img src={question.image} alt="postImage" />
+        <img src={question.image} />
       </section>
       <footer>
         <h1 onClick={() => setShowAnswers(!showAnswers)}>
@@ -103,23 +134,25 @@ function Question({ question }) {
             "Seja o primeiro a responder"
           ) : (
             <>
-              {qtdAnswers} {qtdAnswers > 1 ? "Respostas" : "Resposta"}
+              {qtdAnswers}
+              {qtdAnswers > 1 ? " Respostas" : " Resposta"}
             </>
           )}
         </h1>
         {showAnswers && (
           <>
-            {answers.map((a) => (
-              <Answer answer={a} />
+            {answers.map((answer) => (
+              <Answer answer={answer} />
             ))}
           </>
         )}
-
         <form onSubmit={handleAddAnswer}>
           <textarea
-            placeholder="Responda essa duvida"
+            minLength={10}
+            placeholder="Responda essa dúvida!"
             onChange={(e) => setNewAnswer(e.target.value)}
             required
+            value={newAnswer}
           ></textarea>
           <button>Enviar</button>
         </form>
@@ -127,43 +160,81 @@ function Question({ question }) {
     </QuestionCard>
   );
 }
+function NewQuestion() {
+  useEffect(() => {
+    // const loadCategories = async();
+  }, []);
+
+  return (
+    <FormNewQuestion>
+      <Input id="title" label="Titulo" />
+      <Input id="descricao" label="Descrição" />
+      <Input id="gist" label="Gist" />
+      <Select id="categories" label="Categorias">
+        <option value="">Selecione</option>
+      </Select>
+      <div>
+        <Tag info="Backend"></Tag>
+        <Tag info="Banco de Dados"></Tag>
+      </div>
+      <input type="file" />
+      <button>Enviar</button>
+    </FormNewQuestion>
+  );
+}
+
 function Home() {
   const history = useHistory();
 
   const [questions, setQuestions] = useState([]);
+
+  const [reload, setReload] = useState(null);
+
   useEffect(() => {
     const loadQuestions = async () => {
       const response = await api.get("/feed");
 
       setQuestions(response.data);
     };
-    loadQuestions();
-  }, []);
 
-  const handleSingOut = () => {
-    singOut();
-    history.replace();
+    loadQuestions();
+  }, [reload]);
+
+  const handleSignOut = () => {
+    signOut();
+
+    history.replace("/");
   };
+
+  const handleReload = () => {
+    setReload(Math.random());
+  };
+
   return (
-    <Container>
-      <Header>
-        <Logo src={logo} />
-        <InconSignOut onClick={handleSingOut} />
-      </Header>
-      <Content>
-        <ProfileContainer>
-          <Profile />
-        </ProfileContainer>
-        <FeedContainer>
-          {questions.map((q) => (
-            <Question question={q} />
-          ))}
-        </FeedContainer>
-        <ActionsContainer>
-          <button>Fazer uma pergunta</button>
-        </ActionsContainer>
-      </Content>
-    </Container>
+    <>
+      <Modal title="Faça uma pergunta">
+        <NewQuestion />
+      </Modal>
+      <Container>
+        <Header>
+          <Logo src={logo} onClick={handleReload} />
+          <IconSignOut onClick={handleSignOut} />
+        </Header>
+        <Content>
+          <ProfileContainer>
+            <Profile />
+          </ProfileContainer>
+          <FeedContainer>
+            {questions.map((q) => (
+              <Question question={q} />
+            ))}
+          </FeedContainer>
+          <ActionsContainer>
+            <button>Fazer uma pergunta</button>
+          </ActionsContainer>
+        </Content>
+      </Container>
+    </>
   );
 }
 
