@@ -48,6 +48,18 @@ export const ProfileContainer = styled.div`
     gap: 4px;
   }
 
+  input[type="file"]{
+    display:none;
+  }
+  label{
+    cursor: pointer;
+    text-decoration:underline;
+    transition: .2s;
+    :hover{
+      color: var(--primary);
+    }
+  }
+
   img {
     width: 35%;
     border-radius: 50%;

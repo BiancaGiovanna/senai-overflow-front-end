@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { useHistory, Link } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 import {
   Container,
   Header,
@@ -12,24 +12,24 @@ import {
   IconSignOut,
 } from "./styles";
 
-import Input from "../../components/Input"
+import Input from "../../components/Input";
 import { format } from "date-fns";
 import imgProfile from "../../assets/foto_perfil.png";
 import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
-import { getUser, signOut } from "../../services/security";
+import { getUser, signOut, setUser } from "../../services/security";
 import Modal from "../../components/Modal";
 import { FormNewQuestion } from "../../components/Modal/styles";
 import Select from "../../components/Select";
 import Tag from "../../components/Tag";
 import Loading from "../../components/Loading";
+import { validSquareImage } from "../../utils";
 
 function NewQuestion({ handleReload, handleLoading }) {
-
   const [newQuestion, setNewQuestion] = useState({
     title: "",
     description: "",
-    gist: ""
+    gist: "",
   });
 
   const [categories, setCategories] = useState([]);
@@ -44,14 +44,12 @@ function NewQuestion({ handleReload, handleLoading }) {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-
         const response = await api.get("/categories");
         setCategories(response.data);
       } catch (error) {
         alert(error);
       }
-
-    }
+    };
 
     loadCategories();
   }, []);
@@ -81,26 +79,22 @@ function NewQuestion({ handleReload, handleLoading }) {
     e.target.value = "";
   };
   const handleUnselCategory = (idUnsel) => {
-    setCategoriesSel(categoriesSel.filter(c => c.id !== idUnsel));
+    setCategoriesSel(categoriesSel.filter((c) => c.id !== idUnsel));
 
     const { options } = categoriesRef.current;
 
     for (var i = 0; i < options.length; i++) {
-      if (options[i].value === idUnsel.toString())
-        options[i].disable = false;
-
+      if (options[i].value === idUnsel.toString()) options[i].disable = false;
     }
-
   };
   const handlerInput = (e) => {
-    setNewQuestion({ ...newQuestion, [e.target.id]: e.target.value })
+    setNewQuestion({ ...newQuestion, [e.target.id]: e.target.value });
   };
 
   const handleAddNewQuestion = async (e) => {
     e.preventDefault();
 
     const data = new FormData();
-
 
     data.append("title", newQuestion.title);
     data.append("description", newQuestion.description);
@@ -119,36 +113,59 @@ function NewQuestion({ handleReload, handleLoading }) {
         headers: {
           "Content-type": "multipart/from-data",
         },
-      })
+      });
 
       handleReload();
     } catch (error) {
       handleLoading(false);
 
-      alert(error)
+      alert(error);
     }
   };
 
   return (
     <>
       <FormNewQuestion onSubmit={handleAddNewQuestion}>
-        <Input id="title" label="Título" value={newQuestion.title} handler={handlerInput} />
-        <Input id="description" label="Descrição" value={newQuestion.description} handler={handlerInput} />
-        <Input id="gist" label="Gist" value={newQuestion.gist} handler={handlerInput} />
+        <Input
+          id="title"
+          label="Título"
+          value={newQuestion.title}
+          handler={handlerInput}
+        />
+        <Input
+          id="description"
+          label="Descrição"
+          value={newQuestion.description}
+          handler={handlerInput}
+        />
+        <Input
+          id="gist"
+          label="Gist"
+          value={newQuestion.gist}
+          handler={handlerInput}
+        />
         <Select
           id="categories"
           label="Categorias"
           handler={handleCategories}
           ref={categoriesRef}
         >
-          <option value="" selected disabled>Selecione</option>
+          <option value="" selected disabled>
+            Selecione
+          </option>
           {categories.map((c) => (
-            <option key={c.id} value={c.id}>{c.description}</option>
+            <option key={c.id} value={c.id}>
+              {c.description}
+            </option>
           ))}
         </Select>
         <div>
           {categoriesSel.map((c) => (
-            <Tag key={c.id} info={c.description} handleClose={() => handleUnselCategory(c.id)}></Tag>
+            <Tag
+              key={c.id}
+              info={c.description}
+              handleClose={() => handleUnselCategory(c.id)}
+            ></Tag>
           ))}
         </div>
         <input type="file" onChange={handleImage} />
@@ -159,14 +176,36 @@ function NewQuestion({ handleReload, handleLoading }) {
   );
 }
 
-function Profile() {
-  const student = getUser();
+function Profile({setIsLoading, handleReload, setMessage}) {
+  const [student, setStudent] = useState({});
 
+  useEffect(() => {
+    setStudent(getUser());
+  }, []);
+
+  const handleImage = async (e) => {
+    if (!e.target.files[0]) return;
+
+    await validSquareImage(e.target.file[0]);
+    try {
+      const data = new FormData();
+
+      const response = await api.post(`/student/${student.id}/images`);
+      setTimeout(() => {
+        setStudent({ ...student, image: response.data.image });
+      }, 1000);
+
+      setUser({ ...student, image: response.data.image });
+    } catch (error) {
+      alert(error);
+    }
+  };
   return (
     <>
       <section>
-        <img src={imgProfile} alt="Imagem de Perfil" />
-        <Link To="">Editar Foto</Link>
+        <img src={student.image || imgProfile} alt="Imagem de Perfil" />
+        <label htmlFor="editImageProfile">Editar Foto</label>
+        <input id="editImageProfile" type="file" onChange={handleImage}></input>
       </section>
       <section>
         <strong>NOME:</strong>
@@ -190,9 +229,12 @@ function Answer({ answer }) {
   return (
     <section>
       <header>
-        <img src={imgProfile} alt="imagePerfil"/>
+        <img src={imgProfile} alt="imagePerfil" />
         <strong>
-          por {student.studentId === answer.Student.id ? " Você" : answer.Student.name}
+          por{" "}
+          {student.studentId === answer.Student.id
+            ? " Você"
+            : answer.Student.name}
         </strong>
         <p> {format(new Date(answer.created_at), "dd/MM/yyyy 'as' HH:mm")}</p>
       </header>
@@ -216,7 +258,6 @@ function Question({ question, handleLoading }) {
 
   const handleAddAnswer = async (e) => {
     e.preventDefault();
-
 
     if (newAnswer.length < 10) {
       return alert("A resposta deve ter no mínimo 10 caracteres");
@@ -255,27 +296,32 @@ function Question({ question, handleLoading }) {
   return (
     <QuestionCard>
       <header>
-        <img src={imgProfile} alt="imagePerfil"/>
+        <img src={imgProfile} alt="imagePerfil" />
         <strong>
-          por {student.studentId === question.Student.id ? "Você" : question.Student.name}
+          por{" "}
+          {student.studentId === question.Student.id
+            ? "Você"
+            : question.Student.name}
         </strong>
-        <p>em {format(new Date(question.created_at), "dd/MM/yyyy 'as' HH:mm")}</p>
+        <p>
+          em {format(new Date(question.created_at), "dd/MM/yyyy 'as' HH:mm")}
+        </p>
       </header>
       <section>
         <strong>{question.title}</strong>
         <p>{question.description}</p>
-        <img src={question.image} alt="imageQuestion"/>
+        <img src={question.image} alt="imageQuestion" />
       </section>
       <footer>
         <h1 onClick={() => setShowAnswers(!showAnswers)}>
           {qtdAnswers === 0 ? (
             "Seja o primeiro a responder"
           ) : (
-              <>
-                {qtdAnswers}
-                {qtdAnswers > 1 ? " Respostas" : " Resposta"}
-              </>
-            )}
+            <>
+              {qtdAnswers}
+              {qtdAnswers > 1 ? " Respostas" : " Resposta"}
+            </>
+          )}
         </h1>
         {showAnswers && (
           <>
@@ -308,7 +354,7 @@ function Home() {
 
   const [reload, setReload] = useState(null);
 
-  const [showNewQuestion, setShowNewQuestion] = useState()
+  const [showNewQuestion, setShowNewQuestion] = useState();
 
   useEffect(() => {
     setShowLoading(true);
@@ -335,10 +381,16 @@ function Home() {
 
   return (
     <>
-      {showLoading && <Loading /> }
+      {showLoading && <Loading />}
       {showNewQuestion && (
-        <Modal title="Faça uma pergunta" handleClose={() => setShowNewQuestion(false)}>
-          <NewQuestion handleReload={handleReload} handleLoading={setShowLoading} />
+        <Modal
+          title="Faça uma pergunta"
+          handleClose={() => setShowNewQuestion(false)}
+        >
+          <NewQuestion
+            handleReload={handleReload}
+            handleLoading={setShowLoading}
+          />
         </Modal>
       )}
       <Container>
@@ -348,7 +400,7 @@ function Home() {
         </Header>
         <Content>
           <ProfileContainer>
-            <Profile />
+            <Profile handleReload={handleReload} setShowLoading={setShowLoading}/>
           </ProfileContainer>
           <FeedContainer>
             {questions.map((q) => (
@@ -356,7 +408,9 @@ function Home() {
             ))}
           </FeedContainer>
           <ActionsContainer>
-            <button onClick={() => setShowNewQuestion(true)}>Fazer uma pergunta</button>
+            <button onClick={() => setShowNewQuestion(true)}>
+              Fazer uma pergunta
+            </button>
           </ActionsContainer>
         </Content>
       </Container>
