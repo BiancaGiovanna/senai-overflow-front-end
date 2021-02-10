@@ -8,7 +8,10 @@ export const Container = styled.div`
   flex-direction: column;
 
   > label {
-    font-size: 0.9rem;
+    font-size: 14px;
     margin-bottom: 2px;
+  }
+
+  > select {
   }
 `;

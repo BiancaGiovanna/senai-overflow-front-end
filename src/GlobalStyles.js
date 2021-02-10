@@ -86,6 +86,8 @@ export const GlobalStyles = createGlobalStyle`
     border-radius: 4px;
 
     resize: none;
+
+    font-family: sans-serif;
   }
 
 `;
