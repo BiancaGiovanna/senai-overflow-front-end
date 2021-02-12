@@ -1,5 +1,5 @@
-import { } from "./styles";
-import { Container } from "./styles";
+import { } from "./style";
+import { Container } from "./style";
 import { useRef, useEffect } from "react";
 
 function Alert({ message, type, handleClose }) {

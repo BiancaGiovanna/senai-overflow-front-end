@@ -1,18 +1,18 @@
-import { FaSignOutAlt } from "react-icons/fa";
 import styled from "styled-components";
+import { FaSignOutAlt, FaGithub } from "react-icons/fa";
 
 export const Container = styled.div`
   width: 100vw;
   height: 100vh;
 
-  background-color: var(--dark);
+  background: var(--dark);
 
   display: flex;
   justify-content: center;
 `;
-
 export const Header = styled.header`
   position: fixed;
+
   width: 100%;
   height: 60px;
 
@@ -23,17 +23,15 @@ export const Header = styled.header`
   background-color: var(--primary);
   border-bottom: 1px solid var(--darkGray);
 
-  box-shadow: 0px 1px 5px var(--darkGray);
+  box-shadow: 0px 1px 5px var(--light);
 `;
-
 export const Content = styled.div`
-  width: 1280px;
+  width: 1300px;
   padding-top: 60px;
 
   display: grid;
   grid-template-columns: 20% 60% 20%;
 `;
-
 export const ProfileContainer = styled.div`
   display: flex;
   flex-direction: column;
@@ -47,22 +45,21 @@ export const ProfileContainer = styled.div`
     align-items: center;
     gap: 4px;
   }
-
-  input[type="file"]{
-    display:none;
+  img {
+    width: 30%;
+    border-radius: 50%;
   }
-  label{
+  label {
+    text-decoration: underline;
     cursor: pointer;
-    text-decoration:underline;
-    transition: .2s;
-    :hover{
+    transition: 0.5s;
+
+    :hover {
       color: var(--primary);
     }
   }
-
-  img {
-    width: 35%;
-    border-radius: 50%;
+  input[type="file"] {
+    display: none;
   }
 `;
 
@@ -70,21 +67,21 @@ export const FeedContainer = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
-
   gap: 10px;
-  overflow-y: auto;
 
   padding: 10px 0px;
+  overflow-y: auto;
 `;
 
 export const ActionsContainer = styled.div`
-  margin-top: 10px;
+  margin-top: 15px;
 
   text-align: center;
 `;
 
 export const QuestionCard = styled.article`
   width: 80%;
+  margin-top: 5px;
   padding: 10px;
 
   background-color: var(--darkGray);
@@ -95,47 +92,44 @@ export const QuestionCard = styled.article`
     align-items: center;
     gap: 10px;
 
-    > img {
-      width: 30px;
-      height: 30px;
-      border-radius: 15px;
+    img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
     }
   }
 
   > section {
-    margin-top: 10px;
-
     display: flex;
     flex-direction: column;
-    gap: 10px;
 
     > strong {
+      margin-top: 5px;
       font-size: 18px;
     }
-
     > p {
-      font-size: 15px;
+      font-size: 14px;
       padding: 10px 5px;
+      margin: 5px 0px;
 
       border-left: 2px solid var(--primary);
     }
 
     > img {
-      max-width: 100%;
+      max-width: 80%;
+      border-radius: 3px;
       align-self: center;
     }
   }
 
   > footer {
-    margin-top: 10px;
+    margin-top: 5px;
 
     > h1 {
-      font-size: 18px;
+      font-size: 17px;
       font-weight: bold;
-
       cursor: pointer;
-
-      transition: 0.2s;
+      transition: 0.3s;
 
       :hover {
         color: var(--primary);
@@ -155,13 +149,12 @@ export const QuestionCard = styled.article`
         gap: 10px;
 
         > img {
-          width: 30px;
-          height: 30px;
-          border-radius: 15px;
+          width: 40px;
+          height: 40px;
+          border-radius: 50%;
         }
       }
-
-      > p {
+      > P {
         margin-top: 5px;
         width: 100%;
         padding: 10px 5px;
@@ -169,7 +162,6 @@ export const QuestionCard = styled.article`
         border-left: 2px solid var(--primary);
       }
     }
-
     > form {
       width: 100%;
       margin-top: 5px;
@@ -179,6 +171,10 @@ export const QuestionCard = styled.article`
 
       > textarea {
         flex: 1;
+        padding: 5px;
+        font-weight: bold;
+
+        resize: none;
       }
     }
   }
@@ -190,48 +186,52 @@ export const Logo = styled.img`
 
   margin: 20px;
   margin-top: 40px;
-  border-radius: 30px;
+  border-radius: 25%;
   border: 2px solid var(--dark);
 
   box-shadow: 0px 0px 5px var(--dark);
-
   cursor: pointer;
-  transition: 0.2s;
+  transition: 0.5s;
 
   :hover {
-    transform: scale(1.1);
-    box-shadow: 0px 0px 15px var(--dark);
+    transition: scale(1.1);
+    box-shadow: 0px 0px 10px var(--dark);
   }
 `;
 
 export const IconSignOut = styled(FaSignOutAlt)`
   font-size: 30px;
-  margin-right: 10px;
+  margin-right: 20px;
 
   cursor: pointer;
-
-  transition: 0.2s;
+  transition: 0.4s;
 
   :hover {
     color: var(--dark);
   }
 `;
+export const GistIcon = styled(FaGithub)`
+  font-size: 1.8rem;
+  margin-right: 10px;
 
-export const FormNewQuestion = styled.form`
-  min-width: 300px;
-  width: 450px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  cursor: pointer;
 
-  > div {
-    display: flex;
-    flex-wrap: wrap;
+  transition: 0.2s;
+  :hover {
+    color: var(--primary);
   }
+  :active {
+    transform: scale(0.9);
+  }
+`;
 
-  > img {
-    align-self: center;
-    max-width: 40%;
-    display: none;
+export const ContainerGist = styled.section`
+  margin-top: 10px;
+
+  h2 {
+    font-size: 1.2rem;
+    font-weight: normal;
+    text-align: center;
+    margin-bottom: 5px;
   }
 `;

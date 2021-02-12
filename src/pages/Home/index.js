@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useHistory } from "react-router-dom";
+import ReactEmbedGist from "react-embed-gist";
 import {
   Container,
   Header,
@@ -10,6 +11,8 @@ import {
   QuestionCard,
   Logo,
   IconSignOut,
+  GistIcon,
+  ContainerGist,
 } from "./styles";
 
 import Input from "../../components/Input";
@@ -19,11 +22,11 @@ import logo from "../../assets/logo.png";
 import { api } from "../../services/api";
 import { getUser, signOut, setUser } from "../../services/security";
 import Modal from "../../components/Modal";
-import { FormNewQuestion } from "../../components/Modal/styles";
+import { FormNewQuestion } from "../../components/Modal/style";
 import Select from "../../components/Select";
 import Tag from "../../components/Tag";
 import Loading from "../../components/Loading";
-import { validSquareImage } from "../../utils";
+import { validSquaredImage } from "../../utils";
 
 function NewQuestion({ handleReload, handleLoading }) {
   const [newQuestion, setNewQuestion] = useState({
@@ -176,8 +179,8 @@ function NewQuestion({ handleReload, handleLoading }) {
   );
 }
 
-function Profile({setIsLoading, handleReload, setMessage}) {
-  const [student, setStudent] = useState({});
+function Profile({ setShowLoading, handleReload, setMessage }) {
+  const [student, setStudent] = useState("");
 
   useEffect(() => {
     setStudent(getUser());
@@ -186,26 +189,34 @@ function Profile({setIsLoading, handleReload, setMessage}) {
   const handleImage = async (e) => {
     if (!e.target.files[0]) return;
 
-    await validSquareImage(e.target.file[0]);
     try {
+      await validSquaredImage(e.target.files[0]);
+
       const data = new FormData();
 
-      const response = await api.post(`/student/${student.id}/images`);
+      data.append("image", e.target.files[0]);
+      setShowLoading(true);
+
+      const response = await api.post(`/students/${student.id}/images`, data);
+
       setTimeout(() => {
         setStudent({ ...student, image: response.data.image });
+        handleReload();
       }, 1000);
 
       setUser({ ...student, image: response.data.image });
     } catch (error) {
       alert(error);
+      setShowLoading(false);
     }
   };
+
   return (
     <>
       <section>
         <img src={student.image || imgProfile} alt="Imagem de Perfil" />
         <label htmlFor="editImageProfile">Editar Foto</label>
-        <input id="editImageProfile" type="file" onChange={handleImage}></input>
+        <input id="editImageProfile" type="file" onChange={handleImage} />
       </section>
       <section>
         <strong>NOME:</strong>
@@ -229,7 +240,7 @@ function Answer({ answer }) {
   return (
     <section>
       <header>
-        <img src={imgProfile} alt="imagePerfil" />
+        <img src={answer.Student.image || imgProfile} alt="imagem perfil" />
         <strong>
           por{" "}
           {student.studentId === answer.Student.id
@@ -243,7 +254,7 @@ function Answer({ answer }) {
   );
 }
 
-function Question({ question, handleLoading }) {
+function Question({ question, handleLoading, setCurrentGist }) {
   const [showAnswers, setShowAnswers] = useState(false);
 
   const [newAnswer, setNewAnswer] = useState("");
@@ -278,6 +289,7 @@ function Question({ question, handleLoading }) {
         Student: {
           id: aluno.studentId,
           name: aluno.name,
+          image: aluno.image,
         },
       };
 
@@ -296,7 +308,7 @@ function Question({ question, handleLoading }) {
   return (
     <QuestionCard>
       <header>
-        <img src={imgProfile} alt="imagePerfil" />
+        <img src={question.Student.image || imgProfile} />
         <strong>
           por{" "}
           {student.studentId === question.Student.id
@@ -306,11 +318,14 @@ function Question({ question, handleLoading }) {
         <p>
           em {format(new Date(question.created_at), "dd/MM/yyyy 'as' HH:mm")}
         </p>
+        {question.gist && (
+          <GistIcon onClick={() => setCurrentGist(question.gist)} />
+        )}
       </header>
       <section>
         <strong>{question.title}</strong>
         <p>{question.description}</p>
-        <img src={question.image} alt="imageQuestion" />
+        <img src={question.image} />
       </section>
       <footer>
         <h1 onClick={() => setShowAnswers(!showAnswers)}>
@@ -344,7 +359,21 @@ function Question({ question, handleLoading }) {
     </QuestionCard>
   );
 }
-
+function Gist({ gist, handleClose }) {
+  if (gist) {
+    const formatedGist = gist.split(".com/").pop();
+    return (
+      <Modal
+        title="Exemplo de código"
+        handleClose={() => handleClose(undefined)}
+      >
+        <ContainerGist>
+          <ReactEmbedGist gist={formatedGist} />
+        </ContainerGist>
+      </Modal>
+    );
+  } else return null;
+}
 function Home() {
   const history = useHistory();
 
@@ -356,6 +385,7 @@ function Home() {
 
   const [showNewQuestion, setShowNewQuestion] = useState();
 
+  const [currentGist, setCurrentGist] = useState(undefined);
   useEffect(() => {
     setShowLoading(true);
     const loadQuestions = async () => {
@@ -382,6 +412,7 @@ function Home() {
   return (
     <>
       {showLoading && <Loading />}
+      <Gist gist={currentGist} handleClose={setCurrentGist} />
       {showNewQuestion && (
         <Modal
           title="Faça uma pergunta"
@@ -400,11 +431,19 @@ function Home() {
         </Header>
         <Content>
           <ProfileContainer>
-            <Profile handleReload={handleReload} setShowLoading={setShowLoading}/>
+            <Profile
+              handleReload={handleReload}
+              setShowLoading={setShowLoading}
+              // setMessage={setMessage}
+            />
           </ProfileContainer>
           <FeedContainer>
             {questions.map((q) => (
-              <Question question={q} handleLoading={setShowLoading} />
+              <Question
+                question={q}
+                handleLoading={setShowLoading}
+                setCurrentGist={setCurrentGist}
+              />
             ))}
           </FeedContainer>
           <ActionsContainer>
