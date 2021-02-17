@@ -308,7 +308,7 @@ function Question({ question, handleLoading, setCurrentGist }) {
   return (
     <QuestionCard>
       <header>
-        <img src={question.Student.image || imgProfile} />
+        <img src={question.Student.image || imgProfile} alt="imgProfile" />
         <strong>
           por{" "}
           {student.studentId === question.Student.id
@@ -325,7 +325,7 @@ function Question({ question, handleLoading, setCurrentGist }) {
       <section>
         <strong>{question.title}</strong>
         <p>{question.description}</p>
-        <img src={question.image} />
+        <img src={question.image} alt="imgQuestion"/>
       </section>
       <footer>
         <h1 onClick={() => setShowAnswers(!showAnswers)}>
@@ -427,6 +427,8 @@ function Home() {
       <Container>
         <Header>
           <Logo src={logo} onClick={handleReload} />
+         
+
           <IconSignOut onClick={handleSignOut} />
         </Header>
         <Content>
